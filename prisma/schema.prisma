@@ -13,9 +13,8 @@ datasource db {
 }
         
 model User {
-  id            Int             @id @default(autoincrement())
+  id            String          @id 
   email         String          @unique
-  password      String
   points        Int             @default(0)
   journalings   Journaling[]
   dailyTasks    Task[]
@@ -25,16 +24,18 @@ model User {
 
 model Journaling {
   id              Int      @id @default(autoincrement())
-  userId          Int
+  userId          String
   user            User     @relation(fields: [userId], references: [id])
   date            DateTime @default(now())
   mood            String
   keyTakeaway     String
   wordAffirmation String
+  summary         String  
   tasks           Task[]
-  chat            Json
+  chat            Json[]
   type            JournalType
 }
+
 
 enum JournalType {
   CBT
@@ -43,7 +44,7 @@ enum JournalType {
 
 model Task {
   id             Int      @id @default(autoincrement())
-  userId         Int
+  userId         String
   user           User     @relation(fields: [userId], references: [id])
   journalingId   Int?
   journaling     Journaling? @relation(fields: [journalingId], references: [id])
@@ -56,7 +57,7 @@ model Task {
 
 model Streak {
   id         Int      @id @default(autoincrement())
-  userId     Int
+  userId     String
   user       User     @relation(fields: [userId], references: [id])
   startDate  DateTime
   endDate    DateTime?
@@ -65,7 +66,7 @@ model Streak {
 
 model Conversation {
   id              Int      @id @default(autoincrement())
-  userId          Int
+  userId          String
   user            User     @relation(fields: [userId], references: [id])
   mode            ConversationMode
   date            DateTime @default(now())
