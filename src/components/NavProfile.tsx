@@ -1,4 +1,5 @@
 "use client";
+import { useClerk } from "@clerk/nextjs";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -10,6 +11,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 
 const NavProfile = () => {
+  const { signOut } = useClerk();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-[2px]">
@@ -20,7 +22,7 @@ const NavProfile = () => {
         <Link href="settings" className="p-2 font-medium text-gray-600">
           Settings
         </Link>
-        <Button>Logout</Button>
+        <Button onClick={() => signOut()}>Logout</Button>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -15,10 +15,10 @@ const NAV_ITEMS = [
     name: "Conversations",
     href: "/a/conversations",
   },
-  {
-    name: "Analytics",
-    href: "/a/analytics",
-  },
+  // {
+  //   name: "Analytics",
+  //   href: "/a/analytics",
+  // },
 ];
 
 const BaseNav = () => {
