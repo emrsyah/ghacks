@@ -137,7 +137,7 @@ const DetailJournal = ({ params }: { params: { id: string } }) => {
                       </div>
                     ))
                   ) : (
-                    <div>NO Data Chat</div>
+                    <div>No Data Chat</div>
                   )}
                 </div>
               </TabsContent>
