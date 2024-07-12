@@ -1,5 +1,10 @@
+import { Input } from "postcss";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 
 export const journalingRouter = createTRPCRouter({
   create: protectedProcedure
@@ -86,6 +91,26 @@ export const journalingRouter = createTRPCRouter({
         },
         include: {
           tasks: true,
+        },
+      });
+    }),
+  getAllInfo: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.db.journaling.findMany({
+        where: {
+          userId: input.id,
+        },
+        include: {
+          tasks: true,
+          user: true,
+        },
+        orderBy: {
+          date: "desc",
         },
       });
     }),

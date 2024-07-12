@@ -8,7 +8,7 @@ import { api } from "~/trpc/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { toast } from "sonner";
 
-interface ChatMessage {
+export interface ChatMessage {
   role: "ai" | "human";
   content: string;
 }
