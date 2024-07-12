@@ -1,3 +1,4 @@
+import { conversationRouter } from "~/server/api/routers/conversation";
 import { journalingRouter } from "~/server/api/routers/journal";
 import { postRouter } from "~/server/api/routers/post";
 import { taskRouter } from "~/server/api/routers/task";
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   journal: journalingRouter,
   task: taskRouter,
   user: userRouter,
+  conversation: conversationRouter,
 });
 
 // export type definition of API

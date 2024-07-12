@@ -1,5 +1,6 @@
 // ./app/page.tsx
 import { fetchAccessToken } from "@humeai/voice";
+import BackLink from "~/components/BackLink";
 import EviVoice from "~/components/evi/EviVoice";
 
 export default async function Page() {
@@ -32,5 +33,12 @@ export default async function Page() {
     throw new Error();
   }
 
-  return <EviVoice accessToken={accessToken} />;
+  return (
+    <div>
+      <nav className="mx-auto max-w-6xl py-4">
+        <BackLink />
+      </nav>
+      <EviVoice accessToken={accessToken} />;
+    </div>
+  );
 }

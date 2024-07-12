@@ -60,10 +60,7 @@ model Conversation {
   mode            ConversationMode
   date            DateTime @default(now())
   chat            Json[]
-  emotionalStats  String
-  keyTakeaway     String
-  wordAffirmation String
-  score           Int?
+  emotionalStats  Json
 }
 
 enum ConversationMode {

@@ -14,7 +14,7 @@ type Params = {
 const HistoryCard = (j: Params) => {
   return (
     <Link
-      href={`${j.type == "journal" ? "home" : "conversations"}/${j.type[0]}/${j.id}`}
+      href={`${j.type == "journal" ? "home" : "conversations"}/${j.type == "journal" ? "j/" : ""}${j.id}`}
       type="button"
       key={j.id}
       className="flex justify-between rounded border-[1.3px] border-gray-300 bg-white px-3 py-2 text-start hover:border-indigo-600 hover:bg-indigo-50"

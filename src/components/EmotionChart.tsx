@@ -19,7 +19,7 @@ import {
   ChartTooltipContent,
 } from "~/components/ui/chart";
 
-type EmotionData = Record<string, number>;
+export type EmotionData = Record<string, number>;
 
 interface EmotionEntry {
   emotion: string;
@@ -102,8 +102,8 @@ export const EmotionChart: React.FC<EmotionChartProps> = ({ emotionData }) => {
                     // console.log(view)
                     return (
                       <text
-                        x={viewBox.cx as number}
-                        y={viewBox.cy as number}
+                        x={viewBox.cx}
+                        y={viewBox.cy}
                         textAnchor="middle"
                         dominantBaseline="middle"
                       >
@@ -116,7 +116,7 @@ export const EmotionChart: React.FC<EmotionChartProps> = ({ emotionData }) => {
                         </tspan>
                         <tspan
                           x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 24}
+                          y={(viewBox.cy ?? 0) + 24}
                           className="fill-muted-foreground"
                         ></tspan>
                       </text>

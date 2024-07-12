@@ -1,24 +1,40 @@
 "use client";
 import { useVoice, VoiceReadyState } from "@humeai/voice-react";
+import { useRouter } from "next/navigation";
+import { disconnect } from "process";
 import React from "react";
+import { toast } from "sonner";
 import { EmotionChart } from "~/components/EmotionChart";
 import EviMessages from "~/components/evi/EviMessages";
 import { Button } from "~/components/ui/button";
+import { api } from "~/trpc/react";
 type EmotionData = Record<string, number>;
 
 export default function EviControl() {
+  const router = useRouter();
   const {
     connect,
-    disconnect,
     readyState,
     messages,
     sendPauseAssistantMessage,
-    muteAudio,
     mute,
+    disconnect,
   } = useVoice();
 
   const [cumulativeEmotions, setCumulativeEmotions] =
     React.useState<EmotionData>({});
+
+  const { mutateAsync, isPending } = api.conversation.create.useMutation({
+    onSuccess: (data) => {
+      toast("Conversation Created");
+      toast("Redirecting...");
+      disconnect();
+      router.replace(`/a/conversations/${data.id}`);
+    },
+    onMutate: () => {
+      toast("Creating Conversation...");
+    },
+  });
 
   React.useEffect(() => {
     const newCumulativeEmotions: EmotionData = {};
@@ -46,7 +62,7 @@ export default function EviControl() {
     setCumulativeEmotions(newCumulativeEmotions);
   }, [messages]);
 
-  const endSession = () => {
+  const endSession = async () => {
     sendPauseAssistantMessage();
     mute();
     console.log(cumulativeEmotions);
@@ -59,6 +75,14 @@ export default function EviControl() {
         role: msg.message.role,
         content: msg.message.content,
       }));
+
+    await mutateAsync({
+      chat: messageJson,
+      mode: "CBT",
+      emotionalStats: cumulativeEmotions,
+      // emotionData: cumulativeEmotions,
+    });
+
     console.log(messageJson);
     // muteAudio();
 

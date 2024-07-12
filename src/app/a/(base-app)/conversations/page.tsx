@@ -1,7 +1,10 @@
+"use client";
+import Link from "next/link";
 import React from "react";
 import HistoryCard from "~/components/HistoryCard";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
+import { api } from "~/trpc/react";
 
 const CONVOS = [
   {
@@ -67,12 +70,15 @@ const CONVOS = [
 ];
 
 const Conversations = () => {
+  const { data, isLoading } = api.conversation.getAll.useQuery();
   return (
     // <div className="mx-auto">
     <div className="mx-auto flex max-w-xl flex-col gap-3">
-      <Button className="w-full bg-indigo-600 py-8 text-base">
-        Start Conversation
-      </Button>
+      <Link href={"/a/conversations/new"}>
+        <Button className="w-full bg-indigo-600 py-8 text-base">
+          Start Conversation
+        </Button>
+      </Link>
       <Button
         variant={"outline"}
         className="border-[1.5px] border-indigo-600 text-indigo-600 hover:text-indigo-600"
@@ -80,9 +86,24 @@ const Conversations = () => {
         Start Situational Conversation
       </Button>
       <Separator />
-      {CONVOS.map((c) => (
-        <HistoryCard key={c.id} {...c} type="conversation" />
-      ))}
+      {isLoading ? (
+        <div className="font-medium text-gray-700">Getting your data...</div>
+      ) : data && data.length > 0 ? (
+        data.map((c) => (
+          <HistoryCard
+            key={c.id}
+            dates={c.date}
+            desc={c.mode}
+            id={c.id}
+            title={`Conversation - ${c.id}`}
+            type="conversation"
+          />
+        ))
+      ) : (
+        <div className="font-medium text-gray-600">
+          There is no conversation yet
+        </div>
+      )}
     </div>
     // </div>
   );
