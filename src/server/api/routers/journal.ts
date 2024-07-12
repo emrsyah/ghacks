@@ -19,27 +19,44 @@ export const journalingRouter = createTRPCRouter({
         summary: z.string(),
       }),
     )
+
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.journaling.create({
-        data: {
-          userId: ctx.session.userId,
-          // userId: ctx.session.userId,
-          summary: input.summary,
-          mood: input.mood,
-          keyTakeaway: input.keyTakeaway,
-          wordAffirmation: input.wordAffirmation,
-          chat: input.chat,
-          type: input.type,
-          tasks: {
-            create: input.actionableItems.map((item) => ({
-              userId: ctx.session.userId,
-              description: item,
-            })),
+      return await ctx.db.$transaction(async (transaction) => {
+        // Create journal entry
+        const journalEntry = await transaction.journaling.create({
+          data: {
+            userId: ctx.session.userId,
+            summary: input.summary,
+            mood: input.mood,
+            keyTakeaway: input.keyTakeaway,
+            wordAffirmation: input.wordAffirmation,
+            chat: input.chat,
+            type: input.type,
+            tasks: {
+              create: input.actionableItems.map((item) => ({
+                userId: ctx.session.userId,
+                description: item,
+              })),
+            },
           },
-        },
-        include: {
-          tasks: true,
-        },
+          include: {
+            tasks: true,
+          },
+        });
+
+        // Add 5 points to the user
+        await transaction.user.update({
+          where: {
+            id: ctx.session.userId,
+          },
+          data: {
+            points: {
+              increment: 5,
+            },
+          },
+        });
+
+        return journalEntry;
       });
     }),
   getAll: protectedProcedure.query(async ({ ctx }) => {

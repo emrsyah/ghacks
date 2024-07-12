@@ -22,6 +22,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
 import { Progress } from "~/components/ui/progress";
+import { toast } from "sonner";
 // import { api } from "~/trpc/server";
 
 const model = new ChatOpenAI({
@@ -65,7 +66,17 @@ const NewJournal = () => {
   const [currentStep, setCurrentStep] = React.useState(0);
   const [isFinished, setIsFinished] = React.useState(false);
   const chatContainerRef = React.useRef<HTMLDivElement>(null);
-  const { mutateAsync, isPending } = api.journal.create.useMutation();
+  // const [lo]
+  const { mutateAsync, isPending } = api.journal.create.useMutation({
+    onSuccess: (result) => {
+      toast("New Journal Added");
+      // router.push("/a/journal");
+      router.replace(`/a/home/j/${result.id}`);
+    },
+    onMutate: () => {
+      setIsLoading(true);
+    },
+  });
   const router = useRouter();
 
   // console.log(currentStep);
@@ -184,7 +195,7 @@ const NewJournal = () => {
         chat: chatHistory,
         type: "CBT",
       });
-      router.replace(`/a/home/j/${result.id}`);
+      // router.replace(`/a/home/j/${result.id}`);
       // Here you can do something with the analysisResult,
       // such as saving it to a database or displaying it to the user
     } catch (error) {

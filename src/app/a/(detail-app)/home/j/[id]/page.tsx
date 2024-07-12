@@ -14,7 +14,7 @@ interface ChatMessage {
 }
 
 const DetailJournal = ({ params }: { params: { id: string } }) => {
-  const { data, isLoading } = api.journal.getById.useQuery({
+  const { data, isLoading, refetch } = api.journal.getById.useQuery({
     id: parseInt(params.id),
   });
   const chatData = data?.chat as ChatMessage[] | undefined;
@@ -24,8 +24,12 @@ const DetailJournal = ({ params }: { params: { id: string } }) => {
     isPending,
     isSuccess,
   } = api.task.acceptTask.useMutation({
-    onSuccess: () => {
+    onMutate: async () => {
+      toast("Accepting Task...");
+    },
+    onSuccess: async () => {
       toast("Task Accepted");
+      await refetch();
     },
     onError: () => {
       toast("Task Accept Failed");
@@ -34,7 +38,7 @@ const DetailJournal = ({ params }: { params: { id: string } }) => {
 
   const acceptTask = async (id: number) => {
     await acceptTaskMutation({ id });
-    toast("Adding Task...");
+    // toast("Adding Task...");
     // if (isSuccess) {
     //   toast("Task Added");
     // }

@@ -1,8 +1,10 @@
 "use client";
+// import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 import Logo from "~/components/Logo";
+import NavProfile from "~/components/NavProfile";
 
 const NAV_ITEMS = [
   {
@@ -20,6 +22,7 @@ const NAV_ITEMS = [
 ];
 
 const BaseNav = () => {
+  // const user = currentUser();
   const path = usePathname();
   // console.log(path);
   return (
@@ -37,7 +40,8 @@ const BaseNav = () => {
             </Link>
           ))}
         </div>
-        <div>Profil</div>
+        {/* <div>Profil - {}</div> */}
+        <NavProfile />
       </div>
     </nav>
   );

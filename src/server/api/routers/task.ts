@@ -57,14 +57,26 @@ export const taskRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.task.update({
-        where: {
-          id: input.id,
-        },
-        data: {
-          accepted: true,
-          dateCompleted: new Date(),
-        },
+      return await ctx.db.$transaction(async (transaction) => {
+        await transaction.user.update({
+          where: {
+            id: ctx.session.userId,
+          },
+          data: {
+            points: {
+              increment: 1,
+            },
+          },
+        });
+        return await transaction.task.update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            // accepted: true,
+            dateCompleted: new Date(),
+          },
+        });
       });
     }),
   unCompleteTask: protectedProcedure
@@ -74,14 +86,26 @@ export const taskRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.task.update({
-        where: {
-          id: input.id,
-        },
-        data: {
-          accepted: true,
-          dateCompleted: null,
-        },
+      return await ctx.db.$transaction(async (transaction) => {
+        await transaction.user.update({
+          where: {
+            id: ctx.session.userId,
+          },
+          data: {
+            points: {
+              decrement: 1,
+            },
+          },
+        });
+        return await transaction.task.update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            // accepted: true,
+            dateCompleted: null,
+          },
+        });
       });
     }),
 });
