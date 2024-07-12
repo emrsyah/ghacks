@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 import HistoryCard from "~/components/HistoryCard";
 import Streak from "~/components/Streak";
@@ -78,9 +79,11 @@ const HomePage = () => {
         {/* <Streak /> */}
       </div>
       <div className="flex h-9 w-full flex-col gap-4 bg-blue-300">
-        <Button size={"lg"} className="text-md bg-indigo-600 py-8">
-          Start Daily Journal
-        </Button>
+        <Link href={"home/j/new"} className="w-full">
+          <Button size={"lg"} className="text-md w-full bg-indigo-600 py-8">
+            Start Daily Journal
+          </Button>
+        </Link>
         <Separator />
         <div className="flex flex-col gap-2">
           {JOURNAL.map((j) => (
