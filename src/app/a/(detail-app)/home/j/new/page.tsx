@@ -1,6 +1,7 @@
 "use client";
 import { Loader, SendHorizonal } from "lucide-react";
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import BackLink from "~/components/BackLink";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
@@ -10,20 +11,11 @@ import {
   AIMessage,
   SystemMessage,
 } from "@langchain/core/messages";
-// import { ChatMistralAI } from "@langchain/mistralai";
-
-// const model = new ChatMistralAI({
-//   model: "mistral-large-latest",
-//   temperature: 0.7, // Increased for more nuanced responses
-//   apiKey: "627eLqu1GEWwEhAZc2I17ZqN0jSSX3MP",
-// });
-
 import { ChatOpenAI } from "@langchain/openai";
 import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
 import { Progress } from "~/components/ui/progress";
 import { toast } from "sonner";
-// import { api } from "~/trpc/server";
 
 const model = new ChatOpenAI({
   model: "gpt-4-turbo",
@@ -36,20 +28,52 @@ interface ChatMessage {
   content: string;
 }
 
-const reframingSteps = [
-  "Share a negative thought you're experiencing.",
-  "What triggered this negative thought?",
-  "How does this thought make you feel, and what is its impact?",
-  "In what situations do you notice this thought impacting you the most?",
-  "What evidence supports your negative thought?",
-  "What evidence challenges this thought?",
-  "How would it feel to let go of this negative thought?",
-  "How can we turn this negative thought into something more positive?",
-  "Let's suggest a new way of thinking about this situation.",
-  "How does this new way of thinking make you feel?",
-];
+const modeSteps = {
+  reframingNegativeThought: [
+    "Share a negative thought you're experiencing.",
+    "What triggered this negative thought?",
+    "How does this thought make you feel, and what is its impact?",
+    "In what situations do you notice this thought impacting you the most?",
+    "What evidence supports your negative thought?",
+    "What evidence challenges this thought?",
+    "How would it feel to let go of this negative thought?",
+    "How can we turn this negative thought into something more positive?",
+    "Let's suggest a new way of thinking about this situation.",
+    "How does this new way of thinking make you feel?",
+  ],
+  savoringPositivity: [
+    "Share a positive experience you've had recently.",
+    "What emotions did you feel during this experience?",
+    "What specific details do you remember about this experience?",
+    "How did this experience impact your mood or outlook?",
+    "Did you share this experience with anyone? If so, how did that feel?",
+    "What aspects of this experience would you like to recreate in the future?",
+    "How can you incorporate more moments like this into your daily life?",
+    "What does this positive experience tell you about yourself or your life?",
+    "How can you use this experience to boost your mood when you're feeling down?",
+    "Take a moment to fully savor this positive experience. How do you feel now?",
+  ],
+  exposureHierarchy: [
+    "Identify a fear or anxiety you'd like to work on.",
+    "On a scale of 0-10, how anxious does this make you feel?",
+    "Let's break this fear down into smaller, manageable steps. What would be the least anxiety-provoking situation related to this fear?",
+    "What's a slightly more challenging situation related to this fear?",
+    "Continue to list increasingly challenging situations related to this fear.",
+    "For each situation, rate your anticipated anxiety level (0-10).",
+    "Let's start with the least anxiety-provoking situation. How could you expose yourself to this safely?",
+    "What coping strategies could you use during this exposure?",
+    "How will you know when you're ready to move to the next step in the hierarchy?",
+    "Remember, progress is gradual. How do you feel about starting this exposure process?",
+  ],
+};
 
-const psychologistPrompt = `You are a skilled psychologist specializing in cognitive behavioral therapy (CBT). Your role is to guide the user through a process of reframing negative thoughts. Respond with empathy, insight, and professionalism, always maintaining a supportive and non-judgmental tone. Keep your responses concise, aiming for 2 sentences maximum. Your goal is to help the user identify, challenge, and reframe their negative thoughts in a more balanced and constructive way.`;
+type JournalMode = keyof typeof modeSteps;
+
+const psychologistPrompts = {
+  reframingNegativeThought: `You are a skilled psychologist specializing in cognitive behavioral therapy (CBT). Your role is to guide the user through a process of reframing negative thoughts. Respond with empathy, insight, and professionalism, always maintaining a supportive and non-judgmental tone. Keep your responses concise, aiming for 2 sentences maximum. Your goal is to help the user identify, challenge, and reframe their negative thoughts in a more balanced and constructive way.`,
+  savoringPositivity: `You are a skilled positive psychologist. Your role is to guide the user through a process of savoring positive experiences. Respond with enthusiasm, curiosity, and warmth, encouraging the user to fully appreciate and extend their positive emotions. Keep your responses concise, aiming for 2 sentences maximum. Your goal is to help the user deepen their positive experiences and learn to integrate more positivity into their daily life.`,
+  exposureHierarchy: `You are a skilled psychologist specializing in exposure therapy. Your role is to guide the user through creating and beginning to work through an exposure hierarchy for their fear or anxiety. Respond with empathy, encouragement, and professionalism, always maintaining a supportive and non-judgmental tone. Keep your responses concise, aiming for 2 sentences maximum. Your goal is to help the user break down their fear into manageable steps and begin the process of gradual exposure.`,
+};
 
 interface AnalysisResult {
   mood: string;
@@ -60,17 +84,26 @@ interface AnalysisResult {
 }
 
 const NewJournal = () => {
+  const searchParams = useSearchParams();
+  const modeParam = searchParams.get("mode") as JournalMode;
+
+  const [currentMode, setCurrentMode] = React.useState<JournalMode>(
+    modeParam && modeParam in modeSteps
+      ? modeParam
+      : "reframingNegativeThought",
+  );
+  const steps = modeSteps[currentMode];
+
   const [input, setInput] = React.useState("");
   const [chatHistory, setChatHistory] = React.useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [currentStep, setCurrentStep] = React.useState(0);
   const [isFinished, setIsFinished] = React.useState(false);
   const chatContainerRef = React.useRef<HTMLDivElement>(null);
-  // const [lo]
+
   const { mutateAsync, isPending } = api.journal.create.useMutation({
     onSuccess: (result) => {
       toast("New Journal Added");
-      // router.push("/a/journal");
       router.replace(`/a/home/j/${result.id}`);
     },
     onMutate: () => {
@@ -79,8 +112,24 @@ const NewJournal = () => {
   });
   const router = useRouter();
 
-  // console.log(currentStep);
-  // console.log(reframingSteps.length);
+  React.useEffect(() => {
+    const newMode = searchParams.get("mode") as JournalMode;
+    if (
+      newMode &&
+      newMode in modeSteps &&
+      newMode !== currentMode &&
+      chatHistory.length < 1
+    ) {
+      setCurrentMode(newMode);
+      setCurrentStep(0);
+      setChatHistory([]);
+    }
+    if (newMode && !(newMode in modeSteps) && chatHistory.length < 1) {
+      // toast("Invalid Mode");
+      setCurrentMode("reframingNegativeThought");
+      router.replace("/a/home/j/new");
+    }
+  }, [searchParams]);
 
   React.useEffect(() => {
     if (chatContainerRef.current) {
@@ -90,11 +139,10 @@ const NewJournal = () => {
   }, [chatHistory]);
 
   React.useEffect(() => {
-    // Start the conversation with the first question
     if (chatHistory.length === 0) {
-      setChatHistory([{ role: "ai", content: reframingSteps[0]! }]);
+      setChatHistory([{ role: "ai", content: steps[0]! }]);
     }
-  }, []);
+  }, [currentMode, steps]);
 
   const sendMessage = async () => {
     if (input.trim() === "") return;
@@ -105,7 +153,7 @@ const NewJournal = () => {
 
     try {
       const messages = [
-        new SystemMessage(psychologistPrompt),
+        new SystemMessage(psychologistPrompts[currentMode]),
         ...chatHistory.map((msg) =>
           msg.role === "human"
             ? new HumanMessage(msg.content)
@@ -114,14 +162,12 @@ const NewJournal = () => {
         new HumanMessage(input),
       ];
 
-      // Prepare the prompt for the next step
       const nextStep = currentStep + 1;
       let prompt = "";
-      if (nextStep < reframingSteps.length) {
-        prompt = `Based on the user's response "${input}" to the question "${reframingSteps[currentStep]}", provide a thoughtful and empathetic response. Then, ask the next question: "${reframingSteps[nextStep]}". Adjust the question if needed based on previous responses.`;
+      if (nextStep < steps.length) {
+        prompt = `Based on the user's response "${input}" to the question "${steps[currentStep]}", provide a thoughtful and empathetic response. Then, ask the next question: "${steps[nextStep]}". Adjust the question if needed based on previous responses.`;
       } else {
-        prompt = prompt =
-          "This concludes our reframing exercise. Provide a brief 1 sentence summary of the conversation and offer encouragement to the user.";
+        prompt = `This concludes our ${currentMode} exercise. Provide a brief 1 sentence summary of the conversation and offer encouragement to the user.`;
       }
 
       const response = await model.invoke([
@@ -136,18 +182,13 @@ const NewJournal = () => {
       const newAIMessage: ChatMessage = { role: "ai", content: aiContent };
       setChatHistory((prev) => [...prev, newAIMessage]);
 
-      // console.log(nextStep);
-      // console.log(reframingSteps.length);
-      if (nextStep < reframingSteps.length) {
+      if (nextStep < steps.length) {
         setCurrentStep(nextStep);
-      } else if (nextStep == reframingSteps.length) {
-        // alert("selesai");
+      } else if (nextStep == steps.length) {
         setIsFinished(true);
-        // finishedJournaling();
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      // Handle error (e.g., show an error message to the user)
     }
 
     setIsLoading(false);
@@ -156,7 +197,7 @@ const NewJournal = () => {
 
   const finishedJournaling = async () => {
     const promptForAnalysis = `
-    Based on the following chat history, please provide:
+    Based on the following ${currentMode} chat history, please provide:
     1. The user's mood (choose from: happy, anxious, sad, angry, confused)
     2. A key takeaway from the conversation which the user can learn from
     3. A word of affirmation for the user
@@ -178,15 +219,15 @@ const NewJournal = () => {
 
     try {
       const response = await model.invoke([
-        new SystemMessage(psychologistPrompt),
+        new SystemMessage(psychologistPrompts[currentMode]),
         new HumanMessage(promptForAnalysis),
       ]);
 
       const analysisResult = JSON.parse(
         response.content as string,
       ) as AnalysisResult;
-      // console.log("Analysis Result:", analysisResult);
-      const result = await mutateAsync({
+
+      await mutateAsync({
         actionableItems: analysisResult.actionableItems,
         wordAffirmation: analysisResult.affirmation,
         keyTakeaway: analysisResult.keyTakeaway,
@@ -194,13 +235,10 @@ const NewJournal = () => {
         summary: analysisResult.summary,
         chat: chatHistory,
         type: "CBT",
+        // type: currentMode.toUpperCase(),
       });
-      // router.replace(`/a/home/j/${result.id}`);
-      // Here you can do something with the analysisResult,
-      // such as saving it to a database or displaying it to the user
     } catch (error) {
       console.error("Error analyzing chat history:", error);
-      // Handle the error appropriately
     }
   };
 
@@ -212,7 +250,13 @@ const NewJournal = () => {
       <div className="mx-auto max-w-2xl rounded-md border-[1.4px] border-gray-200 p-4">
         <div className="w-full bg-white">
           <h1 className="text-lg font-semibold">
-            Reframing Negative Thoughts Journal -{" "}
+            {currentMode === "reframingNegativeThought" &&
+              "Reframing Negative Thoughts Journal"}
+            {currentMode === "savoringPositivity" &&
+              "Savoring Positivity Journal"}
+            {currentMode === "exposureHierarchy" &&
+              "Exposure Hierarchy Journal"}
+            {" - "}
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               day: "numeric",
@@ -221,12 +265,8 @@ const NewJournal = () => {
           </h1>
           <Separator className="mt-3" />
           <Progress
-            value={
-              isFinished ? 100 : (currentStep / reframingSteps.length) * 100
-            }
-            // max={reframingSteps.length}
+            value={isFinished ? 100 : (currentStep / steps.length) * 100}
             className="mb-3 h-2 text-indigo-600"
-            // color="indigo"
           />
           <div ref={chatContainerRef} className="mb-4 h-72 overflow-y-auto">
             {chatHistory.map((msg, index) => (
@@ -234,7 +274,6 @@ const NewJournal = () => {
                 key={index}
                 className={`mb-2 ${msg.role === "ai" ? "font-medium text-indigo-600" : ""}`}
               >
-                {/* <strong>{msg.role === "ai" ? "AI: " : "You: "}</strong> */}
                 {msg.content} {msg.role === "ai" ? "🤗" : ""}
               </div>
             ))}
