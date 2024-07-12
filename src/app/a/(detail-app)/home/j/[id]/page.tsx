@@ -1,11 +1,12 @@
 "use client";
-import { Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import React from "react";
 import BackLink from "~/components/BackLink";
 import { Separator } from "~/components/ui/separator";
-import { dateConverterCreatedAt } from "~/lib/helper";
+import { dateConverterCreatedAt, getEmojiForMood } from "~/lib/helper";
 import { api } from "~/trpc/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { toast } from "sonner";
 
 interface ChatMessage {
   role: "ai" | "human";
@@ -17,6 +18,27 @@ const DetailJournal = ({ params }: { params: { id: string } }) => {
     id: parseInt(params.id),
   });
   const chatData = data?.chat as ChatMessage[] | undefined;
+
+  const {
+    mutateAsync: acceptTaskMutation,
+    isPending,
+    isSuccess,
+  } = api.task.acceptTask.useMutation({
+    onSuccess: () => {
+      toast("Task Accepted");
+    },
+    onError: () => {
+      toast("Task Accept Failed");
+    },
+  });
+
+  const acceptTask = async (id: number) => {
+    await acceptTaskMutation({ id });
+    toast("Adding Task...");
+    // if (isSuccess) {
+    //   toast("Task Added");
+    // }
+  };
 
   // console.log(data);
   return (
@@ -45,15 +67,15 @@ const DetailJournal = ({ params }: { params: { id: string } }) => {
               </TabsList>
               <Separator className="mt-1" />
               <TabsContent value="analytics">
-                <div className="flex flex-col gap-3">
+                <div className="mb-3 flex flex-col gap-4">
                   <div>
-                    <h5 className="font-semibold text-indigo-600">
+                    <h5 className="text-sm font-bold uppercase text-indigo-600">
                       Key Takeaway 🔍
                     </h5>
                     <h6 className="text-lg font-medium">{data?.keyTakeaway}</h6>
                   </div>
                   <div>
-                    <h5 className="font-semibold text-indigo-600">
+                    <h5 className="text-sm font-bold uppercase text-indigo-600">
                       Word Affirmations ✨
                     </h5>
                     <h6 className="text-lg font-medium">
@@ -61,20 +83,41 @@ const DetailJournal = ({ params }: { params: { id: string } }) => {
                     </h6>
                   </div>
                   <div>
-                    <h5 className="font-semibold text-indigo-600">
+                    <h5 className="text-sm font-bold uppercase text-indigo-600">
                       Your Mood 🤔
                     </h5>
-                    <h6 className="text-lg font-medium">{data?.mood}</h6>
+                    <h6 className="mt-1 flex w-fit gap-1 rounded-md bg-indigo-300 px-3 py-1 font-medium text-indigo-950">
+                      <p>{getEmojiForMood(data ? data.mood : "neutral")}</p>
+                      <p>{data?.mood}</p>
+                    </h6>
                   </div>
                   <div>
-                    <h5 className="font-semibold text-indigo-600">
-                      Your ToDos ✨
+                    <h5 className="text-sm font-bold uppercase text-indigo-600">
+                      Your ToDos 🗒️
                     </h5>
-                    <h6 className="text-lg font-medium">
+                    <div className="mt-2 flex flex-col gap-3 font-medium">
                       {data?.tasks.map((task) => (
-                        <div key={task.id}>{task.description}</div>
+                        <div
+                          key={task.id}
+                          className="grid grid-cols-12 items-center justify-between gap-4 border-b-[1.2px] border-b-gray-300 pb-2"
+                        >
+                          <h6 className="col-span-9">{task.description}</h6>
+                          <div className="col-span-3 ml-auto flex w-fit items-end justify-end rounded px-2 py-1 text-end text-sm hover:bg-gray-200">
+                            {task.accepted ? (
+                              <p className="text-gray-700">Already Accepted</p>
+                            ) : (
+                              <button
+                                onClick={() => acceptTask(task.id)}
+                                className="flex items-center justify-end gap-1 font-medium text-indigo-600"
+                              >
+                                <p>Add to Task</p>
+                                <ArrowRight size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       ))}
-                    </h6>
+                    </div>
                   </div>
                 </div>
               </TabsContent>

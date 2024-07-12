@@ -11,3 +11,20 @@ export function dateConverterCreatedAt(date: Date) {
   }
   return dayjs(d).format("DD MMM");
 }
+
+export function getEmojiForMood(mood: string): string {
+  switch (mood.toLowerCase()) {
+    case "happy":
+      return "😊";
+    case "anxious":
+      return "😟";
+    case "sad":
+      return "😢";
+    case "angry":
+      return "😠";
+    case "confused":
+      return "😕";
+    default:
+      return "🤔"; // Default emoji for unknown moods
+  }
+}

@@ -33,4 +33,55 @@ export const taskRouter = createTRPCRouter({
       },
     });
   }),
+  acceptTask: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.task.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          accepted: true,
+          dateAssigned: new Date(),
+        },
+      });
+    }),
+  completeTask: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.task.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          accepted: true,
+          dateCompleted: new Date(),
+        },
+      });
+    }),
+  unCompleteTask: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.task.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          accepted: true,
+          dateCompleted: null,
+        },
+      });
+    }),
 });
