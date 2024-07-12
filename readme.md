@@ -20,8 +20,7 @@ A CBT-based journaling app with AI integration to help combat social anxiety.
 Social anxiety is a significant issue, affecting 16 million people in Indonesia. It impacts personal relationships, professional opportunities, and overall quality of life. Despite available help from psychologists, many are afraid to seek assistance. Existing chatbots often provide limited help due to minimal prompt engineering. This inspired us to build Tranquil, a journaling app based on Cognitive Behavioral Therapy (CBT) with AI integration.
 
 ## Features
-- **CBT-Based Journaling**: Proven techniques to combat social anxiety, including Reframing Negative Thoughts, Savoring Positivity, and Exposure Hierarchy.
-- **AI-Powered Conversations**: GPT-4 based AI, fine-tuned with mental health specialist conversations, offering empathetic and effective responses.
+- **CBT-Based Journaling**: Proven techniques to combat social anxiety, including Reframing Negative Thoughts, Savoring Positivity, and Exposure Hierarchy Powered by Fine-Tuned GPT-4.
 - **Tone Recognition**: AI understands and responds to user expressions based on their tone, fostering confidence in communication.
 - **Analytics & Gamification**: Track progress and enjoy a gamified experience to make the journey more engaging.
 - **Specialist Integration**: Summarizes user journaling for mental health specialists to provide better, faster help.
